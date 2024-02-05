@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Question Code Generator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+    max-width: 95%; /* Adjusted for responsiveness */
+    margin: 20px auto;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    overflow: auto; /* Added overflow property */
+}
+
+
+    .header {
+    width: 100%;
+    padding: 15px;
+    background-color: #007bff;
+    color: #fff;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    text-align: center;
+    box-sizing: border-box; /* Added box-sizing property */
+}
+
+
+    .content-left {
+        flex: 1;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .content-right {
+        flex: 1;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    textarea {
+        width: 90%;
+        height: 200px;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        resize: none;
+    }
+
+    button {
+        width: 92%;
+        padding: 10px;
+        margin-top: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .error-message {
+        color: red;
+        margin-top: 5px;
+    }
+
+    #generatedCodeTextTextarea {
+        width: 90%;
+        height: 300px;
+        resize: none;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+
+
+    @media (max-width: 767px) {
+        .container {
+            flex-direction: column;
+        }
+
+        .content-left,
+        .content-right {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Question Code Generator < / ></h1>
+    </div>
+
+    <div class="content-left">
+        <label for="questionTextarea">Paste your questions, options, and correct answers:</label>
+        <textarea id="questionTextarea" placeholder="Paste your questions, options, and correct answers here in following format
+
+1. What is your favourite food?
+Pizza
+Burgers
+Pasta
+Salad
+4"></textarea>
+        <button onclick="generateCode()">Generate HTML Code</button>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <div class="content-right">
+        <label for="generatedText">Generated Text</label>
+        <textarea id="generatedCodeTextTextarea" readonly></textarea>
+        <div>
+            <button id="copyCodeButton" onclick="copyCode()" disabled>Copy Code</button>
+            <button id="beautifyCodeButton" onclick="beautifyCode()">Beautify Code</button>
+            <button id="minifyCodeButton" onclick="minifyCode()">Minify Code</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateCode() {
+        const questionTextarea = document.getElementById("questionTextarea");
+        const questions = questionTextarea.value.trim().split(/\d+\./).slice(1);
+
+        if (!validateFields(questions)) {
+            return;
+        }
+
+        let code = "";
+        let adCount = 0;
+
+        for (let i = 0; i < questions.length; i++) {
+            const lines = questions[i].trim().split("\n");
+            const question = lines[0].trim();
+            const options = lines.slice(1, 5).map((option, index) => {
+                return `<div class="options">${index + 1}. ${option.trim()}</div>`;
+            }).join("");
+
+            const correctOptionIndex = parseInt(lines[5].trim()) - 1;
+
+            code += `<div class="wrapper">
+                <div class="question"><p>${i + 1}. ${question}</p></div>
+                <div class="options-group">
+                    ${options}
+                </div>
+            </div>`;
+
+            
+            code = code.replace(`<div class="options">${correctOptionIndex + 1}.`, `<div class="options correct">${correctOptionIndex + 1}.`);
+
+            if ((i + 1) % 5 === 0 && i !== 0 && adCount < Math.floor(questions.length / 5)) {
+                code += `<div class="ads-wrapper"><div class="ads">Advertisement Code Here</div></div>`;
+                adCount++;
+            }
+        }
+
+        const generatedCodeTextTextarea = document.getElementById("generatedCodeTextTextarea");
+        generatedCodeTextTextarea.value = code;
+
+        document.getElementById("copyCodeButton").disabled = false;
+    }
+
+    function copyCode() {
+        const generatedCodeTextTextarea = document.getElementById("generatedCodeTextTextarea");
+        generatedCodeTextTextarea.select();
+        document.execCommand("copy");
+        alert("Code copied to clipboard!");
+    }
+
+    function beautifyCode() {
+    const generatedCodeTextTextarea = document.getElementById("generatedCodeTextTextarea");
+    let code = generatedCodeTextTextarea.value;
+
+    const isMinified = code.includes("<div") && code.includes("</div>");
+
+    if (isMinified) {
+        code = code.replace(/><(?=[^\s/])/g, ">\n<");
+    }
+
+    generatedCodeTextTextarea.value = code;
+}
+
+
+    function minifyCode() {
+        const generatedCodeTextTextarea = document.getElementById("generatedCodeTextTextarea");
+        let code = generatedCodeTextTextarea.value;
+
+        code = code.replace(/\s+/g, "");
+
+        generatedCodeTextTextarea.value = code;
+    }
+
+    function validateFields(questions) {
+        const errorMessage = document.getElementById("errorMessage");
+        errorMessage.textContent = "";
+
+        if (questions.length === 0) {
+            errorMessage.textContent = "Please provide questions and options.";
+            return false;
+        }
+
+        for (let i = 0; i < questions.length; i++) {
+            const lines = questions[i].trim().split("\n");
+
+            if (lines.length < 6) {
+                errorMessage.innerHTML = "Please provide all required information for each question and in the following format:<br><br>" +
+                              "1. What is your favorite food?<br>" +
+                              "Pizza<br>" +
+                              "Burgers<br>" +
+                              "Pasta<br>" +
+                              "Salad<br>" +
+                              "4";
+    return false;
+            }
+        }
+
+        return true;
+    }
+</script>
+
+</body>
+</html>
