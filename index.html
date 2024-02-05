@@ -148,6 +148,50 @@ Salad
 
 <script>
     function generateCode() {
+    const questionTextarea = document.getElementById("questionTextarea");
+    const questions = questionTextarea.value.trim().split(/\d+\./).slice(1);
+
+    if (!validateFields(questions)) {
+        return;
+    }
+
+    let code = "";
+    let adCount = 0;
+
+    for (let i = 0; i < questions.length; i++) {
+        const lines = questions[i].trim().split("\n");
+        const question = lines[0].trim();
+        const options = lines.slice(1, 5).map((option, index) => {
+            const alphabetLetter = String.fromCharCode(97 + index); // Get alphabet letter (a, b, c, d)
+            return `<div class="options ${alphabetLetter}">${alphabetLetter}. ${option.trim()}</div>`;
+        }).join("");
+
+        const correctOptionIndex = parseInt(lines[5].trim()) - 1;
+        const correctOptionLetter = String.fromCharCode(97 + correctOptionIndex); // Get alphabet letter for correct option
+
+        code += `<div class="wrapper">
+            <div class="question"><p>${i + 1}. ${question}</p></div>
+            <div class="options-group">
+                ${options.replace(`<div class="options ${correctOptionLetter}">`, `<div class="options ${correctOptionLetter} correct">`)}
+            </div>
+        </div>`;
+
+        if ((i + 1) % 5 === 0 && i !== 0 && adCount < Math.floor(questions.length / 5)) {
+            code += `<div class="ads-wrapper"><div class="ads">Advertisement Code Here</div></div>`;
+            adCount++;
+        }
+    }
+
+    const generatedCodeTextTextarea = document.getElementById("generatedCodeTextTextarea");
+    generatedCodeTextTextarea.value = code;
+
+    document.getElementById("copyCodeButton").disabled = false;
+}
+
+
+
+
+    function generateCode() {
         const questionTextarea = document.getElementById("questionTextarea");
         const questions = questionTextarea.value.trim().split(/\d+\./).slice(1);
 
@@ -159,29 +203,35 @@ Salad
         let adCount = 0;
 
         for (let i = 0; i < questions.length; i++) {
-            const lines = questions[i].trim().split("\n");
-            const question = lines[0].trim();
-            const options = lines.slice(1, 5).map((option, index) => {
-                return `<div class="options">${index + 1}. ${option.trim()}</div>`;
-            }).join("");
+        const lines = questions[i].trim().split("\n");
+        const question = lines[0].trim();
+        const options = lines.slice(1, 5).map((option, index) => {
+            const alphabetLetter = String.fromCharCode(97 + index);
+            return `<div class="options ${alphabetLetter}">${alphabetLetter}. ${option.trim()}</div>`;
+        }).join("");
 
-            const correctOptionIndex = parseInt(lines[5].trim()) - 1;
-
-            code += `<div class="wrapper">
-                <div class="question"><p>${i + 1}. ${question}</p></div>
-                <div class="options-group">
-                    ${options}
-                </div>
-            </div>`;
-
-            
-            code = code.replace(`<div class="options">${correctOptionIndex + 1}.`, `<div class="options correct">${correctOptionIndex + 1}.`);
-
-            if ((i + 1) % 5 === 0 && i !== 0 && adCount < Math.floor(questions.length / 5)) {
-                code += `<div class="ads-wrapper"><div class="ads">Advertisement Code Here</div></div>`;
-                adCount++;
-            }
+        let correctOptionLetter;
+        const correctOption = lines[5].trim();
+        
+        if (isNaN(correctOption)) {
+            correctOptionLetter = correctOption.toLowerCase();
+        } else {
+            const correctOptionIndex = parseInt(correctOption) - 1;
+            correctOptionLetter = String.fromCharCode(97 + correctOptionIndex); 
         }
+
+        code += `<div class="wrapper">
+            <div class="question"><p>${i + 1}. ${question}</p></div>
+            <div class="options-group">
+                ${options.replace(`<div class="options ${correctOptionLetter}">`, `<div class="options ${correctOptionLetter} correct">`)}
+            </div>
+        </div>`;
+
+        if ((i + 1) % 5 === 0 && i !== 0 && adCount < Math.floor(questions.length / 5)) {
+            code += `<div class="ads-wrapper"><div class="ads">Advertisement Code Here</div></div>`;
+            adCount++;
+        }
+    }
 
         const generatedCodeTextTextarea = document.getElementById("generatedCodeTextTextarea");
         generatedCodeTextTextarea.value = code;
